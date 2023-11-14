@@ -1,40 +1,39 @@
-#include <stdio.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
-int shared = 0;
-pthread_mutex_t lock;
+pthread_t tid[2];
+int counter;
 
-void *increment(void *arg) {
-    int x;
-    pthread_mutex_lock(&lock);
-    x = shared;
-    x++;
-    sleep(1);
-    shared = x;
-    pthread_mutex_unlock(&lock);
-    return NULL;
+void* trythis(void* arg)
+{
+	unsigned long i = 0;
+	counter += 1;
+	printf("\n Job %d has started\n", counter);
+
+	for (i = 0; i < (0xFFFFFFFF); i++)
+		;
+	printf("\n Job %d has finished\n", counter);
+
+	return NULL;
 }
 
-void *decrement(void *arg) {
-    int y;
-    pthread_mutex_lock(&lock);
-    y = shared;
-    y--;
-    sleep(1);
-    shared = y;
-    pthread_mutex_unlock(&lock);
-    return NULL;
-}
+int main(void)
+{
+	int i = 0;
+	int error;
 
-int main() {
-    pthread_t tid1, tid2;
-    pthread_mutex_init(&lock, NULL);
-    pthread_create(&tid1, NULL, increment, NULL);
-    pthread_create(&tid2, NULL, decrement, NULL);
-    pthread_join(tid1, NULL);
-    pthread_join(tid2, NULL);
-    printf("Final value of shared is %d\n", shared);
-    pthread_mutex_destroy(&lock);
-    return 0;
+	while (i < 2) {
+		error = pthread_create(&(tid[i]), NULL, &trythis, NULL);
+		if (error != 0)
+			printf("\nThread can't be created : [%s]", strerror(error));
+		i++;
+	}
+
+	pthread_join(tid[0], NULL);
+	pthread_join(tid[1], NULL);
+
+	return 0;
 }
